@@ -396,6 +396,34 @@ namespace Control_Inventario_Implementos {
 		this->Visible = false;
 		formularioCrud->ShowDialog();
 		this->Visible = true;
+		// Generar el nuevo ID 
+		Inventario inventario = ObtenerInventario();
+		int nuevoID = inventario.obtenerListaImplementos().size() + 1;
+
+		// Obtener los datos ingresados en el formulario de creación
+		std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
+		std::string nuevoTipo = convertirSystemStringAStdString(formularioCrud->Tipo);
+		int nuevaCantidad = System::Convert::ToInt32(formularioCrud->Cantidad);
+		std::string nuevoProveedor = convertirSystemStringAStdString(formularioCrud->Proveedor);
+		std::string nuevoModelo = convertirSystemStringAStdString(formularioCrud->Modelo);
+
+		
+
+		// Crear el nuevo implemento
+		Implemento nuevoImplemento;
+		nuevoImplemento.setID(nuevoID);
+		nuevoImplemento.setNombre(nuevoNombre);
+		nuevoImplemento.setTipo(nuevoTipo);
+		nuevoImplemento.setCantidad(nuevaCantidad);
+		nuevoImplemento.setProveedor(nuevoProveedor);
+		nuevoImplemento.setModelo(nuevoModelo);
+
+		// Guardar el nuevo implemento en el archivo CSV
+		GuardarImplementoEnArchivo(nuevoID, nuevoImplemento);
+
+		// Actualizar la grilla
+		ActualizarGrilla();
+
 	}
 
 	//Cierra la ventana y vuelve a la anterior

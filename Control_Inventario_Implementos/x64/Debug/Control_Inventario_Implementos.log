@@ -1,5 +1,7 @@
 ﻿  CppCLR_WinFormsProject.cpp
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(401,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
   MyForm.cpp
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(401,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
   Generando código...
   AssemblyInfo.obj : se encontró un módulo MSIL; vinculación incremental deshabilitada para MSIL; ejecutando vínculo completo
   Control_Inventario_Implementos.vcxproj -> D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\x64\Debug\Control_Inventario_Implementos.exe
