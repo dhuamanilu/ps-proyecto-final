@@ -17,8 +17,30 @@ namespace Control_Inventario_Implementos {
 		{
 			InitializeComponent();
 		}
-
-		form_cambio_datos(String^ id, String^ nombre, String^ tipo, String^ cantidad, String^ Proveedor, String^ Modelo, bool write)
+		form_cambio_datos(int id){
+			InitializeComponent();
+			this->textBox_id->Enabled = false;
+			this->textBox_id->Text = System::Convert::ToString(id);
+			
+		}
+		form_cambio_datos(String^ id, String^ nombre, String^ tipo,
+			String^ cantidad, String^ Proveedor, String^ Modelo, int option)
+		{
+			InitializeComponent();
+			if (option == 1) {
+				this->textBox_id->Text = id;
+				this->textBox_id->Enabled = false;
+			}
+			
+			this->textBox_nombre->Text = nombre;
+			this->textBox_tipo->Text = tipo;
+			this->textBox_cantidad->Text = cantidad;
+			this->textBox_proveedor->Text = Proveedor;
+			this->textBox_modelo->Text = Modelo;
+			
+		}
+		form_cambio_datos(String^ id, String^ nombre, String^ tipo, 
+			String^ cantidad, String^ Proveedor, String^ Modelo, bool write)
 		{
 			InitializeComponent();
 			this->textBox_id->Text = id;
@@ -29,6 +51,7 @@ namespace Control_Inventario_Implementos {
 			this->textBox_modelo->Text = Modelo;
 			bloquearEntradas(write);
 		}
+
 		property String^ ID {
         String^ get() { return textBox_id->Text; }
         void set(String^ value) { textBox_id->Text = value; }
@@ -333,7 +356,8 @@ namespace Control_Inventario_Implementos {
 #pragma endregion
 	//Capturamos los datos ingresados si se apreta aceptar
 	//Los capturo todos com String, dependiendo de cada dato se castea
-	//En esta funcion se deberia agregar o modificar los archivos con los datos antes de que cierre la ventana
+	//En esta funcion se deberia agregar o modificar los archivos con los 
+	//datos antes de que cierre la ventana
 	private: System::Void btn_aceptar_Click(System::Object^ sender, System::EventArgs^ e) {
 		id_selected = this->textBox_id->Text;
 		nombre_selected = this->textBox_nombre->Text;

@@ -4,6 +4,7 @@
 #include "inventario.h"
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #using <mscorlib.dll>
 
 
@@ -341,17 +342,17 @@ namespace Control_Inventario_Implementos {
 
 	private: Inventario ObtenerInventario() {
 		Inventario inventario;
-		int idArchivo = 1;
-		while (true) {
-			Implemento implemento = LeerImplementoDesdeArchivo(idArchivo);
-			if (implemento.getID() == -1) {
-				// Si el implemento tiene ID -1, significa que no se pudo abrir el archivo
-				// Por lo tanto, se termina el ciclo
-				break;
+		std::string carpetaArchivos = "archivos/";
+
+		for (const auto& archivo : std::filesystem::directory_iterator(carpetaArchivos)) {
+			std::string nombreArchivo = archivo.path().filename().string();
+			if (nombreArchivo.find("archivo_") == 0 && nombreArchivo.find(".csv") == nombreArchivo.length() - 4) {
+				int idArchivo = std::stoi(nombreArchivo.substr(8, nombreArchivo.length() - 12));
+				Implemento implemento = LeerImplementoDesdeArchivo(idArchivo);
+				if (implemento.getID() != -1) {
+					inventario.agregarImplemento(implemento);
+				}
 			}
-			// Agregamos el implemento leído al inventario
-			inventario.agregarImplemento(implemento);
-			idArchivo++;
 		}
 		return inventario;
 	}
@@ -392,13 +393,14 @@ namespace Control_Inventario_Implementos {
 	
 	//Crea la ventana para llenar datos
 	private: System::Void btn_Crear_Click(System::Object^ sender, System::EventArgs^ e) {
-		form_cambio_datos^ formularioCrud = gcnew form_cambio_datos();
-		this->Visible = false;
-		formularioCrud->ShowDialog();
-		this->Visible = true;
 		// Generar el nuevo ID 
 		Inventario inventario = ObtenerInventario();
 		int nuevoID = inventario.obtenerListaImplementos().size() + 1;
+		form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(nuevoID);
+		this->Visible = false;
+		formularioCrud->ShowDialog();
+		this->Visible = true;
+		
 
 		// Obtener los datos ingresados en el formulario de creación
 		std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
@@ -429,23 +431,29 @@ namespace Control_Inventario_Implementos {
 	//Cierra la ventana y vuelve a la anterior
 	private: System::Void btn_Salir_Click(System::Object^ sender, System::EventArgs^ e) {
 		this->Close();
+		ActualizarGrilla();
 	}
 
 	//Crea la ventana del formulario crud para leer sin los campos habilitados
 	private: System::Void btn_leer_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (id_selected) {
-			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(id_selected,nombre_selected,tipo_selected,cantidad_selected,Proveedor_selected,Modelo_selected,true);
+			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(
+				id_selected,nombre_selected,tipo_selected,cantidad_selected,
+				Proveedor_selected,Modelo_selected,true);
 			this->Visible = false;
 			formularioCrud->ShowDialog();
 			//Consulta(datos) la vuelven a llamar para que se actualize la grilla
 			this->Visible = true;
+			ActualizarGrilla();
 		}
 	}
 
 	//Crea la ventana del formulario crud para modificar con los campos habilitados
 	private: System::Void btn_modificar_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (id_selected) {
-			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(id_selected, nombre_selected, tipo_selected, cantidad_selected, Proveedor_selected, Modelo_selected, false);
+			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(
+				id_selected, nombre_selected, tipo_selected, cantidad_selected, 
+				Proveedor_selected, Modelo_selected,1);
 			this->Visible = false;
 			formularioCrud->ShowDialog();
 			//Consulta(datos) la vuelven a llamar para que se actualize la grilla
