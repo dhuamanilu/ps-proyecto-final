@@ -29,7 +29,35 @@ namespace Control_Inventario_Implementos {
 			this->textBox_modelo->Text = Modelo;
 			bloquearEntradas(write);
 		}
+		property String^ ID {
+        String^ get() { return textBox_id->Text; }
+        void set(String^ value) { textBox_id->Text = value; }
+    }
 
+    property String^ Nombre {
+        String^ get() { return textBox_nombre->Text; }
+        void set(String^ value) { textBox_nombre->Text = value; }
+    }
+
+    property String^ Tipo {
+        String^ get() { return textBox_tipo->Text; }
+        void set(String^ value) { textBox_tipo->Text = value; }
+    }
+
+    property String^ Cantidad {
+        String^ get() { return textBox_cantidad->Text; }
+        void set(String^ value) { textBox_cantidad->Text = value; }
+    }
+
+    property String^ Proveedor {
+        String^ get() { return textBox_proveedor->Text; }
+        void set(String^ value) { textBox_proveedor->Text = value; }
+    }
+
+    property String^ Modelo {
+        String^ get() { return textBox_modelo->Text; }
+        void set(String^ value) { textBox_modelo->Text = value; }
+    }
 	protected:
 
 		~form_cambio_datos()

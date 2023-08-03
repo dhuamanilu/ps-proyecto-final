@@ -19,7 +19,26 @@ Class Control_Inventario_Implementos.form_cambio_datos: AutoLayout, AnsiClass, C
   :System.Windows.Forms.Form
     Void .ctor(System.String, System.String, System.String, System.String, System.String, System.String, Boolean): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.String Modelo 'get set' : 
+    System.String Proveedor 'get set' : 
+    System.String Cantidad 'get set' : 
+    System.String Tipo 'get set' : 
+    System.String Nombre 'get set' : 
+    System.String ID 'get set' : 
   Methods:
+    get_ID(): PrivateScope, Public, HideBySig, SpecialName
+    set_ID(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Nombre(): PrivateScope, Public, HideBySig, SpecialName
+    set_Nombre(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Tipo(): PrivateScope, Public, HideBySig, SpecialName
+    set_Tipo(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Cantidad(): PrivateScope, Public, HideBySig, SpecialName
+    set_Cantidad(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Proveedor(): PrivateScope, Public, HideBySig, SpecialName
+    set_Proveedor(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Modelo(): PrivateScope, Public, HideBySig, SpecialName
+    set_Modelo(String): PrivateScope, Public, HideBySig, SpecialName
     GetIdSelected(): PrivateScope, Public, HideBySig
     GetNombreSelected(): PrivateScope, Public, HideBySig
     GetTipoSelected(): PrivateScope, Public, HideBySig

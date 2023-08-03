@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 #using <mscorlib.dll>
+
+
 namespace Control_Inventario_Implementos {
 
 	using namespace System;
@@ -37,6 +39,12 @@ namespace Control_Inventario_Implementos {
 	private: System::Windows::Forms::Button^ btn_Crear;
 	private: System::Windows::Forms::Button^ btn_Salir;
 	private: System::Windows::Forms::Label^ lbl_lista;
+	private : std::string convertirSystemStringAStdString(System::String^ str)
+	{
+		array<Byte>^ byteArray = System::Text::Encoding::UTF8->GetBytes(str);
+		pin_ptr<Byte> pinnedData = &byteArray[0];
+		return std::string(reinterpret_cast<char*>(pinnedData), byteArray->Length);
+	}
 	protected:
 		bool dragging;
 		Point offset;
@@ -258,6 +266,34 @@ namespace Control_Inventario_Implementos {
 		dragging = false;
 	}
 	private :
+		// Función para guardar un implemento en el archivo CSV correspondiente
+		void GuardarImplementoEnArchivo(int idArchivo, const Implemento& implemento)
+		{
+			// Crear la ruta completa al archivo CSV correspondiente
+			std::string rutaArchivo = "archivos/archivo_" + std::to_string(idArchivo) + ".csv";
+
+
+			// Abrir el archivo en modo de escritura
+			std::ofstream archivo(rutaArchivo, std::ios::out); // std::ios::app para agregar al final del archivo
+
+			if (!archivo.is_open())
+			{
+				// Manejar el caso en el que el archivo no se pueda abrir
+				// Por ejemplo, lanzar una excepción o mostrar un mensaje de error
+				return;
+			}
+
+			// Escribir el nuevo implemento en el archivo, separando los campos con comas
+			archivo << implemento.getID() << ','
+				<< implemento.getNombre() << ','
+				<< implemento.getTipo() << ','
+				<< implemento.getCantidad() << ','
+				<< implemento.getProveedor() << ','
+				<< implemento.getModelo() << '\n';
+
+			// Cerrar el archivo
+			archivo.close();
+		}
 		// Declaración de la función para leer un implemento desde el archivo CSV
 		Implemento LeerImplementoDesdeArchivo(int idArchivo){
 			Implemento implemento;
@@ -301,10 +337,11 @@ namespace Control_Inventario_Implementos {
 
 			return implemento;
 		}
-	//Estructura como ejemplo de como para enviar datos a la grilla, lo cambian segun como envien los datos
-	private: System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e) {
+
+
+	private: Inventario ObtenerInventario() {
 		Inventario inventario;
-		int idArchivo = 0;
+		int idArchivo = 1;
 		while (true) {
 			Implemento implemento = LeerImplementoDesdeArchivo(idArchivo);
 			if (implemento.getID() == -1) {
@@ -316,7 +353,15 @@ namespace Control_Inventario_Implementos {
 			inventario.agregarImplemento(implemento);
 			idArchivo++;
 		}
+		return inventario;
+	}
+	private: void ActualizarGrilla() {
+		Inventario inventario = ObtenerInventario();
 		this->Consulta(inventario);
+	}
+	//Estructura como ejemplo de como para enviar datos a la grilla, lo cambian segun como envien los datos
+	private: System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e) {
+		ActualizarGrilla();
 	}
 
 	//Llenar la grilla de la ventana
@@ -377,12 +422,53 @@ namespace Control_Inventario_Implementos {
 			formularioCrud->ShowDialog();
 			//Consulta(datos) la vuelven a llamar para que se actualize la grilla
 			this->Visible = true;
+			
+			// Obtener los datos actualizados del formulario de modificación
+			int nuevoID = System::Convert::ToInt32(formularioCrud->ID);
+			std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
+			std::string nuevoTipo = convertirSystemStringAStdString(formularioCrud->Tipo);
+			int nuevaCantidad = System::Convert::ToInt32(formularioCrud->Cantidad);
+			std::string nuevoProveedor = convertirSystemStringAStdString(formularioCrud->Proveedor);
+			std::string nuevoModelo = convertirSystemStringAStdString(formularioCrud->Modelo);
+
+			// Actualizar el implemento en el inventario
+			Implemento implementoActualizado;
+			// Obtener el implemento actual de tu inventario usando el ID seleccionado
+			// Asignar los datos actualizados al implemento
+			implementoActualizado.setID(nuevoID);
+			implementoActualizado.setNombre(nuevoNombre);
+			implementoActualizado.setTipo(nuevoTipo);
+			implementoActualizado.setCantidad(nuevaCantidad);
+			implementoActualizado.setProveedor(nuevoProveedor);
+			implementoActualizado.setModelo(nuevoModelo);
+
+			// Guardar el implemento actualizado en el archivo
+			GuardarImplementoEnArchivo(nuevoID,implementoActualizado);
+
+			ActualizarGrilla();
+			// Mostrar nuevamente la ventana principal
+			this->Visible = true;
+
+		}
+	}
+	private: void BorrarSegunId(System::String^ idSeleccionado) {
+		if (!String::IsNullOrEmpty(idSeleccionado)) {
+			// Convertir el ID seleccionado a entero
+			int idArchivo = System::Convert::ToInt32(idSeleccionado);
+
+			// Crear la ruta completa al archivo CSV correspondiente
+			std::string rutaArchivo = "archivos/archivo_" + std::to_string(idArchivo) + ".csv";
+
+			// Eliminar el archivo correspondiente al implemento seleccionado
+			std::remove(rutaArchivo.c_str());
 		}
 	}
 	private: System::Void btn_borrar_Click(System::Object^ sender, System::EventArgs^ e) {
 		//Tienen los datos seleccionados en las variables
 		//Borran los datos del archivo desde esta funcion
-		//Consulta(datos) la vuelven a llamar cuando borrar del archivo para que se actualize la grilla
+		BorrarSegunId(id_selected);
+		ActualizarGrilla();
+		this->Visible = true;
 	}
 
 	//Guarda los datos seleccionados de la grilla actual
