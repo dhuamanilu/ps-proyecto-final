@@ -6,11 +6,18 @@
 #include <sstream>
 #include <filesystem>
 #include <chrono>
-#include <sys/resource.h> // Para utilizar getrusage
 #include <vector>
+#include <iostream>
+#include <cstdlib>
+
+//#include <windows.h>
+//#include <pdh.h>
+//#include <pdhmsg.h>
+
 
 #using <mscorlib.dll>
-
+using namespace System;
+using namespace System::Collections::Generic;
 
 namespace Control_Inventario_Implementos {
 
@@ -29,6 +36,7 @@ namespace Control_Inventario_Implementos {
 		{
 			InitializeComponent();
 			//inventario = new Inventario();
+			
 		}
 
 	protected:
@@ -52,8 +60,8 @@ namespace Control_Inventario_Implementos {
 	}
 	protected:
 		// Vector para almacenar los valores de tiempo de CPU y uso de memoria
-    		std::vector<std::pair<int, long>> cpu_values; // Pair de (tiempo, valor)
-    		std::vector<std::pair<int, unsigned long>> memory_values; // Pair de (tiempo, valor)
+		List<KeyValuePair<int, long>>^ cpu_values; // Pair de (tiempo, valor)
+		List<KeyValuePair<int, unsigned long>>^ memory_values; // Pair de (tiempo, valor)
 		int indiceVector = 0;
 		int indiceMemoria = 0;
 		bool dragging;
@@ -85,6 +93,11 @@ namespace Control_Inventario_Implementos {
 #pragma region Windows Form Designer generated code
 		void InitializeComponent(void)
 		{
+			// Inicializar las listas
+			cpu_values = gcnew List<KeyValuePair<int, long >>();
+			memory_values = gcnew List<KeyValuePair<int, unsigned long>>();
+			indiceVector = 0; // Inicializar el índice en 0
+			indiceMemoria = 0; // Inicializar el índice en 0
 			this->pnl_header = (gcnew System::Windows::Forms::Panel());
 			this->lbl_header = (gcnew System::Windows::Forms::Label());
 			this->btn_Crear = (gcnew System::Windows::Forms::Button());
@@ -436,31 +449,43 @@ namespace Control_Inventario_Implementos {
 		// Actualizar la grilla
 		ActualizarGrilla();
 		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
-        	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
+        long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>
+			(end - start).count(); //medir tiempo resultado cpu
 		// Guardar el tiempo de CPU en el vector cpu_values
-        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+        cpu_values->Add(KeyValuePair<int, long>(indiceVector, tiempoCPU));
 		indiceVector++;
 		// Obtener el uso de memoria en kilobytes
-    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
-    		// Agregar los valores al vector
-    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
-    		indiceMemoria++;
+    	unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    	// Agregar los valores al vector
+    	memory_values->Add(KeyValuePair<int, unsigned long>(indiceMemoria, usoMemoria));
+    	indiceMemoria++;
 	}
 
-	//Cierra la ventana y vuelve a la anterior
 	private: System::Void btn_Salir_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->Close();
-		ActualizarGrilla();
 		// Guardar los datos del vector cpu_values en un archivo de texto
-		GuardarDatosEnArchivoCPU("cpu_stats.txt");
-		GuardarDatosEnArchivoMemoria("memory_stats.txt");
-		//crea comando gnuplot
-		std::string gnuplotCpuCommand = "gnuplot -persist -e \"plot 'cpu_stats.txt' using 1:2 with linespoints title 'Tiempo de CPU utilizado'\"";
-		std::string gnuplotMemoryCommand = "gnuplot -persist -e \"plot 'memory_stats.txt' using 1:2 with linespoints title 'Uso de memoria'\"";
-		//llama a gnuplot para que grafique 
-		int statusCpu = system(gnuplotCpuCommand.c_str());
-		int statusMemory = system(gnuplotMemoryCommand.c_str());
+		GuardarDatosEnArchivoCPU("cpu.txt");
+		GuardarDatosEnArchivoMemoria("memory.txt");
+
+		std::ofstream file("imprimir.gnu");
+		if (file.is_open()) {
+			file<<"plot \"cpu.txt\" using 1:2 with linespoints title \'Tiempo de CPU utilizado\'"<<std::endl;
+			file.close();
+		}
+		std::ofstream file2("imprimir2.gnu");
+		if (file2.is_open()) {
+			file2 << "plot \"memory.txt\" using 1:2 with linespoints title \'Uso de memoria\'" << std::endl;
+			file2.close();
+		}
+		// llama a gnuplot para que grafique la CPU
+		int statusCpu = system("gnuplot -persist imprimir.gnu");
+
+		// llama a gnuplot para que grafique la memoria
+		int statusMemory = system("gnuplot -persist imprimir2.gnu");
+
+		// Cerrar la ventana después de generar las gráficas
+		this->Close();
 	}
+
 
 	//Crea la ventana del formulario crud para leer sin los campos habilitados
 	private: System::Void btn_leer_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -478,12 +503,12 @@ namespace Control_Inventario_Implementos {
 		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
         	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
 		// Guardar el tiempo de CPU en el vector cpu_values
-        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+        	cpu_values->Add(KeyValuePair<int, long>(indiceVector, tiempoCPU));
 		indiceVector++;
 		// Obtener el uso de memoria en kilobytes
     		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
     		// Agregar los valores al vector
-    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		memory_values->Add(KeyValuePair<int, unsigned long>(indiceMemoria, usoMemoria));
     		indiceMemoria++;
 	}
 
@@ -528,12 +553,12 @@ namespace Control_Inventario_Implementos {
 		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
         	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
 		// Guardar el tiempo de CPU en el vector cpu_values
-        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+        	cpu_values->Add(KeyValuePair<int, long>(indiceVector, tiempoCPU));
 		indiceVector++;
 		// Obtener el uso de memoria en kilobytes
     		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
     		// Agregar los valores al vector
-    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		memory_values->Add(KeyValuePair<int, unsigned long>(indiceMemoria, usoMemoria));
     		indiceMemoria++;
 	}
 	private: void BorrarSegunId(System::String^ idSeleccionado) {
@@ -558,13 +583,13 @@ namespace Control_Inventario_Implementos {
 		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
         	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
 		// Guardar el tiempo de CPU en el vector cpu_values
-       		 cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+       	cpu_values->Add(KeyValuePair<int, long>(indiceVector, tiempoCPU));
 		indiceVector++;
 		// Obtener el uso de memoria en kilobytes
-    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
-    		// Agregar los valores al vector
-    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
-    		indiceMemoria++;
+    	unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    	// Agregar los valores al vector
+    	memory_values->Add(KeyValuePair<int, unsigned long>(indiceMemoria, usoMemoria));
+    	indiceMemoria++;
 	}
 
 	//Guarda los datos seleccionados de la grilla actual
@@ -585,38 +610,78 @@ namespace Control_Inventario_Implementos {
 		}
 	}
 	void GuardarDatosEnArchivoCPU(const std::string &archivo) {
-		std::ofstream ofs(archivo, std::ios::out | std::ios::app);
-		if (!ofs)
+		std::ofstream ofs(archivo, std::ios::app);
+		if (!ofs.is_open())
 		{
 			std::cerr << "Error al abrir el archivo para escribir.\n";
 			return;
 		}
-
-		for (const auto &dato : cpu_values)
-		{
-			ofs << dato.first << " " << dato.second << "\n";
+		
+		for each (KeyValuePair<int, long > dato in cpu_values) {
+			ofs << dato.Key << " " << dato.Value << "\n";
 		}
 	}
 
 	void GuardarDatosEnArchivoMemoria(const std::string &archivo) {
-		std::ofstream ofs(archivo, std::ios::out | std::ios::app);
-		if (!ofs)
+		std::ofstream ofs(archivo, std::ios::app);
+		if (!ofs.is_open())
 		{
 			std::cerr << "Error al abrir el archivo para escribir.\n";
 			return;
 		}
-
-		for (const auto &dato : memory_values)
-		{
-			ofs << dato.first << " " << dato.second << "\n";
+		
+		for each (KeyValuePair<int, unsigned long> dato in memory_values) {
+			ofs << dato.Key << " " << dato.Value << "\n";
 		}
 	}
 
 	// Función para obtener el uso de memoria en tiempo de ejecución
 	unsigned long obtenerUsoMemoria() {
-		rusage usage;
-		getrusage(RUSAGE_SELF, &usage);
-		return usage.ru_maxrss;
+		/*DH_STATUS status;
+		PDH_FMT_COUNTERVALUE counterValue;
+
+		// Abrir una consulta
+		PDH_HQUERY query;
+		status = PdhOpenQueryW(NULL, NULL, &query); // Utilizamos PdhOpenQueryW para cadenas anchas
+		if (status != ERROR_SUCCESS) {
+			std::cerr << "Error al abrir la consulta PDH: " << status << std::endl;
+			return 0;
+		}
+
+		// Agregar la consulta para obtener el contador de uso de memoria
+		PDH_HCOUNTER counter;
+		status = PdhAddCounterW(query, L"\\Process(??APP_WIN32_PROCESS??)\\Working Set", NULL, &counter); // Utilizamos PdhAddCounterW para cadenas anchas
+		if (status != ERROR_SUCCESS) {
+			std::cerr << "Error al agregar el contador PDH: " << status << std::endl;
+			PdhCloseQuery(query);
+			return 0;
+		}
+
+		// Recopilar datos de la consulta
+		status = PdhCollectQueryData(query);
+		if (status != ERROR_SUCCESS) {
+			std::cerr << "Error al recopilar datos de la consulta PDH: " << status << std::endl;
+			PdhCloseQuery(query);
+			return 0;
+		}
+
+		// Obtener el valor del contador de uso de memoria
+		status = PdhGetFormattedCounterValue(counter, PDH_FMT_LONG, NULL, &counterValue);
+		if (status != ERROR_SUCCESS) {
+			std::cerr << "Error al obtener el valor del contador PDH: " << status << std::endl;
+			PdhCloseQuery(query);
+			return 0;
+		}
+
+		// Cerrar la consulta
+		PdhCloseQuery(query);
+
+		return static_cast<unsigned long>(counterValue.longValue / 1024); // Convertir byte
+		s a kilobytes*/
+		return 0;
 	}
+
+
+
 	};
 }

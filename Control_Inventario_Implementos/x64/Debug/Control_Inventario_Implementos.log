@@ -1,7 +1,47 @@
 ﻿  CppCLR_WinFormsProject.cpp
-D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(398,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(421,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(452,24): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(504,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(554,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\Myform.h(584,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
   MyForm.cpp
-D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(398,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(421,15): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(452,24): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(504,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(554,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
+D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\Control_Inventario_Implementos\MyForm.h(584,25): warning C4244: 'inicializando': conversión de '_Rep' a 'long'; posible pérdida de datos
+          with
+          [
+              _Rep=__int64
+          ]
   Generando código...
   AssemblyInfo.obj : se encontró un módulo MSIL; vinculación incremental deshabilitada para MSIL; ejecutando vínculo completo
   Control_Inventario_Implementos.vcxproj -> D:\descargas\Control_Inventario_Implementos\Control_Inventario_Implementos\x64\Debug\Control_Inventario_Implementos.exe
