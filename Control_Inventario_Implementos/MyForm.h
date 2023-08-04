@@ -416,16 +416,16 @@ namespace Control_Inventario_Implementos {
 	//Crea la ventana para llenar datos
 	private: System::Void btn_Crear_Click(System::Object^ sender, System::EventArgs^ e) {
 		auto start = std::chrono::high_resolution_clock::now(); //medir tiempo cpu inicio
-		// Generar el nuevo ID 
-		Inventario inventario = ObtenerInventario();
-		int nuevoID = inventario.obtenerListaImplementos().size() + 1;
-		form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(nuevoID);
+		
+		
+		form_cambio_datos^ formularioCrud = gcnew form_cambio_datos();
 		this->Visible = false;
 		formularioCrud->ShowDialog();
 		this->Visible = true;
 		
 
 		// Obtener los datos ingresados en el formulario de creación
+		int nuevoID = System::Convert::ToInt32(formularioCrud->ID);
 		std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
 		std::string nuevoTipo = convertirSystemStringAStdString(formularioCrud->Tipo);
 		int nuevaCantidad = System::Convert::ToInt32(formularioCrud->Cantidad);
@@ -518,7 +518,7 @@ namespace Control_Inventario_Implementos {
 		if (id_selected) {
 			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(
 				id_selected, nombre_selected, tipo_selected, cantidad_selected, 
-				Proveedor_selected, Modelo_selected,1);
+				Proveedor_selected, Modelo_selected,false);
 			this->Visible = false;
 			formularioCrud->ShowDialog();
 			//Consulta(datos) la vuelven a llamar para que se actualize la grilla

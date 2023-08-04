@@ -17,28 +17,8 @@ namespace Control_Inventario_Implementos {
 		{
 			InitializeComponent();
 		}
-		form_cambio_datos(int id){
-			InitializeComponent();
-			this->textBox_id->Enabled = false;
-			this->textBox_id->Text = System::Convert::ToString(id);
-			
-		}
-		form_cambio_datos(String^ id, String^ nombre, String^ tipo,
-			String^ cantidad, String^ Proveedor, String^ Modelo, int option)
-		{
-			InitializeComponent();
-			if (option == 1) {
-				this->textBox_id->Text = id;
-				this->textBox_id->Enabled = false;
-			}
-			
-			this->textBox_nombre->Text = nombre;
-			this->textBox_tipo->Text = tipo;
-			this->textBox_cantidad->Text = cantidad;
-			this->textBox_proveedor->Text = Proveedor;
-			this->textBox_modelo->Text = Modelo;
-			
-		}
+
+		
 		form_cambio_datos(String^ id, String^ nombre, String^ tipo, 
 			String^ cantidad, String^ Proveedor, String^ Modelo, bool write)
 		{
