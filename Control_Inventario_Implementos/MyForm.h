@@ -5,6 +5,10 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <chrono>
+#include <sys/resource.h> // Para utilizar getrusage
+#include <vector>
+
 #using <mscorlib.dll>
 
 
@@ -47,6 +51,11 @@ namespace Control_Inventario_Implementos {
 		return std::string(reinterpret_cast<char*>(pinnedData), byteArray->Length);
 	}
 	protected:
+		// Vector para almacenar los valores de tiempo de CPU y uso de memoria
+    		std::vector<std::pair<int, long>> cpu_values; // Pair de (tiempo, valor)
+    		std::vector<std::pair<int, unsigned long>> memory_values; // Pair de (tiempo, valor)
+		int indiceVector = 0;
+		int indiceMemoria = 0;
 		bool dragging;
 		Point offset;
 		String^ id_selected;
@@ -267,7 +276,7 @@ namespace Control_Inventario_Implementos {
 		dragging = false;
 	}
 	private :
-		// Funci髇 para guardar un implemento en el archivo CSV correspondiente
+		// Funci贸n para guardar un implemento en el archivo CSV correspondiente
 		void GuardarImplementoEnArchivo(int idArchivo, const Implemento& implemento)
 		{
 			// Crear la ruta completa al archivo CSV correspondiente
@@ -280,7 +289,7 @@ namespace Control_Inventario_Implementos {
 			if (!archivo.is_open())
 			{
 				// Manejar el caso en el que el archivo no se pueda abrir
-				// Por ejemplo, lanzar una excepci髇 o mostrar un mensaje de error
+				// Por ejemplo, lanzar una excepci贸n o mostrar un mensaje de error
 				return;
 			}
 
@@ -295,7 +304,7 @@ namespace Control_Inventario_Implementos {
 			// Cerrar el archivo
 			archivo.close();
 		}
-		// Declaraci髇 de la funci髇 para leer un implemento desde el archivo CSV
+		// Declaraci贸n de la funci贸n para leer un implemento desde el archivo CSV
 		Implemento LeerImplementoDesdeArchivo(int idArchivo){
 			Implemento implemento;
 
@@ -307,15 +316,15 @@ namespace Control_Inventario_Implementos {
 			
 			if (!archivo.is_open()) {
 				// Manejar el caso en el que el archivo no se pueda abrir
-				// Por ejemplo, lanzar una excepci髇 o retornar un implemento vac韔
+				// Por ejemplo, lanzar una excepci贸n o retornar un implemento vac铆o
 				implemento.setID(-1);
 				return implemento;
 			}
 			
-			// Leer una l韓ea del archivo
+			// Leer una l铆nea del archivo
 			std::string linea;
 			if (std::getline(archivo, linea)) {
-				// Procesar la l韓ea para obtener los campos separados por comas
+				// Procesar la l铆nea para obtener los campos separados por comas
 				std::stringstream ss(linea);
 				std::vector<std::string> campos;
 				std::string campo;
@@ -323,7 +332,7 @@ namespace Control_Inventario_Implementos {
 					campos.push_back(campo);
 				}
 
-				// Verificar que la l韓ea contenga la cantidad esperada de campos
+				// Verificar que la l铆nea contenga la cantidad esperada de campos
 				if (campos.size() == 6) {
 					// Asignar los valores a los miembros del implemento
 					implemento.setID(std::stoi(campos[0]));
@@ -393,6 +402,7 @@ namespace Control_Inventario_Implementos {
 	
 	//Crea la ventana para llenar datos
 	private: System::Void btn_Crear_Click(System::Object^ sender, System::EventArgs^ e) {
+		auto start = std::chrono::high_resolution_clock::now(); //medir tiempo cpu inicio
 		// Generar el nuevo ID 
 		Inventario inventario = ObtenerInventario();
 		int nuevoID = inventario.obtenerListaImplementos().size() + 1;
@@ -402,7 +412,7 @@ namespace Control_Inventario_Implementos {
 		this->Visible = true;
 		
 
-		// Obtener los datos ingresados en el formulario de creaci髇
+		// Obtener los datos ingresados en el formulario de creaci贸n
 		std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
 		std::string nuevoTipo = convertirSystemStringAStdString(formularioCrud->Tipo);
 		int nuevaCantidad = System::Convert::ToInt32(formularioCrud->Cantidad);
@@ -425,17 +435,36 @@ namespace Control_Inventario_Implementos {
 
 		// Actualizar la grilla
 		ActualizarGrilla();
-
+		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
+        	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
+		// Guardar el tiempo de CPU en el vector cpu_values
+        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+		indiceVector++;
+		// Obtener el uso de memoria en kilobytes
+    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    		// Agregar los valores al vector
+    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		indiceMemoria++;
 	}
 
 	//Cierra la ventana y vuelve a la anterior
 	private: System::Void btn_Salir_Click(System::Object^ sender, System::EventArgs^ e) {
 		this->Close();
 		ActualizarGrilla();
+		// Guardar los datos del vector cpu_values en un archivo de texto
+		GuardarDatosEnArchivoCPU("cpu_stats.txt");
+		GuardarDatosEnArchivoMemoria("memory_stats.txt");
+		//crea comando gnuplot
+		std::string gnuplotCpuCommand = "gnuplot -persist -e \"plot 'cpu_stats.txt' using 1:2 with linespoints title 'Tiempo de CPU utilizado'\"";
+		std::string gnuplotMemoryCommand = "gnuplot -persist -e \"plot 'memory_stats.txt' using 1:2 with linespoints title 'Uso de memoria'\"";
+		//llama a gnuplot para que grafique 
+		int statusCpu = system(gnuplotCpuCommand.c_str());
+		int statusMemory = system(gnuplotMemoryCommand.c_str());
 	}
 
 	//Crea la ventana del formulario crud para leer sin los campos habilitados
 	private: System::Void btn_leer_Click(System::Object^ sender, System::EventArgs^ e) {
+		auto start = std::chrono::high_resolution_clock::now(); //medir tiempo cpu inicio
 		if (id_selected) {
 			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(
 				id_selected,nombre_selected,tipo_selected,cantidad_selected,
@@ -446,10 +475,21 @@ namespace Control_Inventario_Implementos {
 			this->Visible = true;
 			ActualizarGrilla();
 		}
+		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
+        	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
+		// Guardar el tiempo de CPU en el vector cpu_values
+        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+		indiceVector++;
+		// Obtener el uso de memoria en kilobytes
+    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    		// Agregar los valores al vector
+    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		indiceMemoria++;
 	}
 
 	//Crea la ventana del formulario crud para modificar con los campos habilitados
 	private: System::Void btn_modificar_Click(System::Object^ sender, System::EventArgs^ e) {
+		auto start = std::chrono::high_resolution_clock::now(); //medir tiempo inicio cpu
 		if (id_selected) {
 			form_cambio_datos^ formularioCrud = gcnew form_cambio_datos(
 				id_selected, nombre_selected, tipo_selected, cantidad_selected, 
@@ -459,7 +499,7 @@ namespace Control_Inventario_Implementos {
 			//Consulta(datos) la vuelven a llamar para que se actualize la grilla
 			this->Visible = true;
 			
-			// Obtener los datos actualizados del formulario de modificaci髇
+			// Obtener los datos actualizados del formulario de modificaci贸n
 			int nuevoID = System::Convert::ToInt32(formularioCrud->ID);
 			std::string nuevoNombre = convertirSystemStringAStdString(formularioCrud->Nombre);
 			std::string nuevoTipo = convertirSystemStringAStdString(formularioCrud->Tipo);
@@ -484,8 +524,17 @@ namespace Control_Inventario_Implementos {
 			ActualizarGrilla();
 			// Mostrar nuevamente la ventana principal
 			this->Visible = true;
-
 		}
+		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
+        	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
+		// Guardar el tiempo de CPU en el vector cpu_values
+        	cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+		indiceVector++;
+		// Obtener el uso de memoria en kilobytes
+    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    		// Agregar los valores al vector
+    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		indiceMemoria++;
 	}
 	private: void BorrarSegunId(System::String^ idSeleccionado) {
 		if (!String::IsNullOrEmpty(idSeleccionado)) {
@@ -500,11 +549,22 @@ namespace Control_Inventario_Implementos {
 		}
 	}
 	private: System::Void btn_borrar_Click(System::Object^ sender, System::EventArgs^ e) {
+		auto start = std::chrono::high_resolution_clock::now(); //medir tiempo inicio cpu
 		//Tienen los datos seleccionados en las variables
 		//Borran los datos del archivo desde esta funcion
 		BorrarSegunId(id_selected);
 		ActualizarGrilla();
 		this->Visible = true;
+		auto end = std::chrono::high_resolution_clock::now(); //medir tiempo final cpu
+        	long tiempoCPU = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); //medir tiempo resultado cpu
+		// Guardar el tiempo de CPU en el vector cpu_values
+       		 cpu_values.push_back(std::make_pair(indiceVector, tiempoCPU));
+		indiceVector++;
+		// Obtener el uso de memoria en kilobytes
+    		unsigned long usoMemoria = obtenerUsoMemoria() / 1024;
+    		// Agregar los valores al vector
+    		memory_values.push_back(std::make_pair(indiceMemoria, usoMemoria));
+    		indiceMemoria++;
 	}
 
 	//Guarda los datos seleccionados de la grilla actual
@@ -523,6 +583,40 @@ namespace Control_Inventario_Implementos {
 
 			this->lbl_seleccionado->Text = "Seleccionado: " + valorPrimeraCelda;
 		}
+	}
+	void GuardarDatosEnArchivoCPU(const std::string &archivo) {
+		std::ofstream ofs(archivo, std::ios::out | std::ios::app);
+		if (!ofs)
+		{
+			std::cerr << "Error al abrir el archivo para escribir.\n";
+			return;
+		}
+
+		for (const auto &dato : cpu_values)
+		{
+			ofs << dato.first << " " << dato.second << "\n";
+		}
+	}
+
+	void GuardarDatosEnArchivoMemoria(const std::string &archivo) {
+		std::ofstream ofs(archivo, std::ios::out | std::ios::app);
+		if (!ofs)
+		{
+			std::cerr << "Error al abrir el archivo para escribir.\n";
+			return;
+		}
+
+		for (const auto &dato : memory_values)
+		{
+			ofs << dato.first << " " << dato.second << "\n";
+		}
+	}
+
+	// Funci贸n para obtener el uso de memoria en tiempo de ejecuci贸n
+	unsigned long obtenerUsoMemoria() {
+		rusage usage;
+		getrusage(RUSAGE_SELF, &usage);
+		return usage.ru_maxrss;
 	}
 	};
 }
