@@ -637,14 +637,14 @@ namespace Control_Inventario_Implementos {
 
 	// Función para obtener el uso de memoria en tiempo de ejecución
 	unsigned long obtenerUsoMemoria() {
-		/*DH_STATUS status;
+		DH_STATUS status;
 		PDH_FMT_COUNTERVALUE counterValue;
 
 		// Abrir una consulta
 		PDH_HQUERY query;
 		status = PdhOpenQueryW(NULL, NULL, &query); // Utilizamos PdhOpenQueryW para cadenas anchas
 		if (status != ERROR_SUCCESS) {
-			std::cerr << "Error al abrir la consulta PDH: " << status << std::endl;
+			//std::cerr << "Error al abrir la consulta PDH: " << status << std::endl;
 			return 0;
 		}
 
@@ -652,7 +652,7 @@ namespace Control_Inventario_Implementos {
 		PDH_HCOUNTER counter;
 		status = PdhAddCounterW(query, L"\\Process(??APP_WIN32_PROCESS??)\\Working Set", NULL, &counter); // Utilizamos PdhAddCounterW para cadenas anchas
 		if (status != ERROR_SUCCESS) {
-			std::cerr << "Error al agregar el contador PDH: " << status << std::endl;
+			//std::cerr << "Error al agregar el contador PDH: " << status << std::endl;
 			PdhCloseQuery(query);
 			return 0;
 		}
@@ -660,7 +660,7 @@ namespace Control_Inventario_Implementos {
 		// Recopilar datos de la consulta
 		status = PdhCollectQueryData(query);
 		if (status != ERROR_SUCCESS) {
-			std::cerr << "Error al recopilar datos de la consulta PDH: " << status << std::endl;
+			//std::cerr << "Error al recopilar datos de la consulta PDH: " << status << std::endl;
 			PdhCloseQuery(query);
 			return 0;
 		}
@@ -668,7 +668,7 @@ namespace Control_Inventario_Implementos {
 		// Obtener el valor del contador de uso de memoria
 		status = PdhGetFormattedCounterValue(counter, PDH_FMT_LONG, NULL, &counterValue);
 		if (status != ERROR_SUCCESS) {
-			std::cerr << "Error al obtener el valor del contador PDH: " << status << std::endl;
+			//std::cerr << "Error al obtener el valor del contador PDH: " << status << std::endl;
 			PdhCloseQuery(query);
 			return 0;
 		}
@@ -676,9 +676,8 @@ namespace Control_Inventario_Implementos {
 		// Cerrar la consulta
 		PdhCloseQuery(query);
 
-		return static_cast<unsigned long>(counterValue.longValue / 1024); // Convertir byte
-		s a kilobytes*/
-		return 0;
+		return static_cast<unsigned long>(counterValue.longValue / 1024); 
+		
 	}
 
 
